@@ -1,157 +1,299 @@
-/**the requirement was to create a file system where we have 
- * database equivalent to a folder, table resembling a file and
- * records indicating lines in a file. On this file system apply
- * CRUD operations.
- */
-
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 
-// Define the base path for the databases
-const basePath = '/Users/siddhiwadetiwar/Desktop/';
+const baseDir = '/Users/siddhiwadetiwar/Desktop/';
 
-// Function to create a new database
-function createDatabase(databaseName) {
-  const databasePath = path.join(basePath, databaseName);
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
-  fs.mkdir(databasePath, (err) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
+const displayMenu = () => {
+    console.log(`
+        Menu:
+        1. Create Folder
+        2. Read Folder
+        3. Update Folder
+        4. Delete Folder
+        5. Create File
+        6. Read File
+        7. Update File
+        8. Delete File
+        9. Create Record
+        10. Read Record
+        11. Update Record
+        12. Delete Record
+        13. Exit
+    `);
+};
 
-    console.log(`Database '${databaseName}' created successfully.`);
-  });
-}
-
-// Function to create a new table (file) in a database
-function createTable(databaseName, tableName) {
-  const tablePath = path.join(basePath, databaseName, tableName);
-
-  fs.writeFile(tablePath, '', (err) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-
-    console.log(`Table '${tableName}' created in '${databaseName}' database.`);
-  });
-}
-
-// Function to insert a new record (line) into a table
-function insertRecord(databaseName, tableName, record) {
-  const tablePath = path.join(basePath, databaseName, tableName);
-
-  fs.appendFile(tablePath, record + '\n', (err) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-
-    console.log(`Record added to '${tableName}' table in '${databaseName}' database.`);
-  });
-}
-
-// Function to read all records from a table
-function readRecords(databaseName, tableName) {
-  const tablePath = path.join(basePath, databaseName, tableName);
-
-  fs.readFile(tablePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-
-    const records = data.split('\n').filter(Boolean);
-    console.log(`Records in '${tableName}' table in '${databaseName}' database:`);
-    records.forEach((record, index) => {
-      console.log(`  ${index + 1}. ${record}`);
+const createFolder = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        const folderPath = path.join(baseDir, folderName);
+        if (!fs.existsSync(folderPath)) {
+            fs.mkdirSync(folderPath);
+            console.log(`Folder ${folderName} created successfully.`);
+        } else {
+            console.log(`Folder ${folderName} already exists.`);
+        }
+        displayMenu();
     });
-  });
-}
+};
 
-// Function to update a record in a table
-function updateRecord(databaseName, tableName, lineNumber, newRecord) {
-  const tablePath = path.join(basePath, databaseName, tableName);
-
-  fs.readFile(tablePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-
-    const records = data.split('\n');
-    if (lineNumber >= 0 && lineNumber < records.length) {
-      records[lineNumber] = newRecord;
-      const updatedData = records.join('\n');
-
-      fs.writeFile(tablePath, updatedData, (err) => {
-        if (err) {
-          console.error(err);
-          return;
+const readFolder = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        const folderPath = path.join(baseDir, folderName);
+        if (fs.existsSync(folderPath)) {
+            const files = fs.readdirSync(folderPath);
+            console.log(`Files in folder ${folderName}:`);
+            files.forEach(file => console.log(file));
+        } else {
+            console.log(`Folder ${folderName} does not exist.`);
         }
+        displayMenu();
+    });
+};
 
-        console.log(`Record at line ${lineNumber + 1} updated in '${tableName}' table.`);
-      });
-    } else {
-      console.error(`Invalid line number ${lineNumber + 1}.`);
-    }
-  });
-}
+const updateFolder = () => {
+    rl.question('Enter current folder name: ', (oldFolderName) => {
+        rl.question('Enter new folder name: ', (newFolderName) => {
+            const oldFolderPath = path.join(baseDir, oldFolderName);
+            const newFolderPath = path.join(baseDir, newFolderName);
+            if (fs.existsSync(oldFolderPath)) {
+                fs.renameSync(oldFolderPath, newFolderPath);
+                console.log(`Folder ${oldFolderName} renamed to ${newFolderName}.`);
+            } else {
+                console.log(`Folder ${oldFolderName} does not exist.`);
+            }
+            displayMenu();
+        });
+    });
+};
 
-// Function to delete a record from a table
-function deleteRecord(databaseName, tableName, lineNumber) {
-  const tablePath = path.join(basePath, databaseName, tableName);
-
-  fs.readFile(tablePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-
-    const records = data.split('\n');
-    if (lineNumber >= 0 && lineNumber < records.length) {
-      records.splice(lineNumber, 1);
-      const updatedData = records.join('\n');
-
-      fs.writeFile(tablePath, updatedData, (err) => {
-        if (err) {
-          console.error(err);
-          return;
+const deleteFolder = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        const folderPath = path.join(baseDir, folderName);
+        if (fs.existsSync(folderPath)) {
+            fs.rmdirSync(folderPath, { recursive: true });
+            console.log(`Folder ${folderName} deleted successfully.`);
+        } else {
+            console.log(`Folder ${folderName} does not exist.`);
         }
+        displayMenu();
+    });
+};
 
-        console.log(`Record at line ${lineNumber + 1} deleted from '${tableName}' table.`);
-      });
-    } else {
-      console.error(`Invalid line number ${lineNumber + 1}.`);
+const createFile = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        rl.question('Enter file name: ', (fileName) => {
+            const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+            if (!fs.existsSync(filePath)) {
+                fs.writeFileSync(filePath, '[]');
+                console.log(`File ${fileName} created successfully in folder ${folderName}.`);
+            } else {
+                console.log(`File ${fileName} already exists in folder ${folderName}.`);
+            }
+            displayMenu();
+        });
+    });
+};
+
+const readFile = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        rl.question('Enter file name: ', (fileName) => {
+            const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+            if (fs.existsSync(filePath)) {
+                const content = fs.readFileSync(filePath, 'utf8');
+                console.log(`Records in file ${fileName} in folder ${folderName}:`);
+                console.log(JSON.parse(content));
+            } else {
+                console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+            }
+            displayMenu();
+        });
+    });
+};
+
+const updateFile = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        rl.question('Enter file name: ', (fileName) => {
+            const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+            if (fs.existsSync(filePath)) {
+                const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                console.log('Current content:', content);
+                rl.question('Enter new content: ', (newContent) => {
+                    fs.writeFileSync(filePath, JSON.stringify(newContent, null, 2));
+                    console.log(`File ${fileName} in folder ${folderName} updated successfully.`);
+                    displayMenu();
+                });
+            } else {
+                console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+                displayMenu();
+            }
+        });
+    });
+};
+
+const deleteFile = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        rl.question('Enter file name: ', (fileName) => {
+            const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                console.log(`File ${fileName} in folder ${folderName} deleted successfully.`);
+            } else {
+                console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+            }
+            displayMenu();
+        });
+    });
+};
+
+const createRecord = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        rl.question('Enter file name: ', (fileName) => {
+            rl.question('Enter record (JSON format): ', (record) => {
+                const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+                if (fs.existsSync(filePath)) {
+                    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                    content.push(JSON.parse(record));
+                    fs.writeFileSync(filePath, JSON.stringify(content, null, 2));
+                    console.log(`Record added to file ${fileName} in folder ${folderName}.`);
+                } else {
+                    console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+                }
+                displayMenu();
+            });
+        });
+    });
+};
+
+const readRecord = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        rl.question('Enter file name: ', (fileName) => {
+            rl.question('Enter record index: ', (recordIndex) => {
+                const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+                if (fs.existsSync(filePath)) {
+                    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                    if (recordIndex >= 0 && recordIndex < content.length) {
+                        console.log(`Record ${recordIndex} in file ${fileName} in folder ${folderName}:`);
+                        console.log(content[recordIndex]);
+                    } else {
+                        console.log(`Record ${recordIndex} does not exist in file ${fileName} in folder ${folderName}.`);
+                    }
+                } else {
+                    console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+                }
+                displayMenu();
+            });
+        });
+    });
+};
+
+const updateRecord = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        rl.question('Enter file name: ', (fileName) => {
+            rl.question('Enter record index: ', (recordIndex) => {
+                rl.question('Enter new record (JSON format): ', (newRecord) => {
+                    const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+                    if (fs.existsSync(filePath)) {
+                        const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                        if (recordIndex >= 0 && recordIndex < content.length) {
+                            content[recordIndex] = JSON.parse(newRecord);
+                            fs.writeFileSync(filePath, JSON.stringify(content, null, 2));
+                            console.log(`Record ${recordIndex} in file ${fileName} in folder ${folderName} updated successfully.`);
+                        } else {
+                            console.log(`Record ${recordIndex} does not exist in file ${fileName} in folder ${folderName}.`);
+                        }
+                    } else {
+                        console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+                    }
+                    displayMenu();
+                });
+            });
+        });
+    });
+};
+
+const deleteRecord = () => {
+    rl.question('Enter folder name: ', (folderName) => {
+        rl.question('Enter file name: ', (fileName) => {
+            rl.question('Enter record index: ', (recordIndex) => {
+                const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+                if (fs.existsSync(filePath)) {
+                    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                    if (recordIndex >= 0 && recordIndex < content.length) {
+                        content.splice(recordIndex, 1);
+                        fs.writeFileSync(filePath, JSON.stringify(content, null, 2));
+                        console.log(`Record ${recordIndex} in file ${fileName} in folder ${folderName} deleted successfully.`);
+                    } else {
+                        console.log(`Record ${recordIndex} does not exist in file ${fileName} in folder ${folderName}.`);
+                    }
+                } else {
+                    console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+                }
+                displayMenu();
+            });
+        });
+    });
+};
+
+const handleMenuChoice = (choice) => {
+    switch (choice) {
+        case '1':
+            createFolder();
+            break;
+        case '2':
+            readFolder();
+            break;
+        case '3':
+            updateFolder();
+            break;
+        case '4':
+            deleteFolder();
+            break;
+        case '5':
+            createFile();
+            break;
+        case '6':
+            readFile();
+            break;
+        case '7':
+            updateFile();
+            break;
+        case '8':
+            deleteFile();
+            break;
+        case '9':
+            createRecord();
+            break;
+        case '10':
+            readRecord();
+            break;
+        case '11':
+            updateRecord();
+            break;
+        case '12':
+            deleteRecord();
+            break;
+        case '13':
+            rl.close();
+            break;
+        default:
+            console.log('Invalid choice. Please try again.');
+            displayMenu();
+            break;
     }
-  });
-}
+};
 
-// Example usage:
+rl.on('close', () => {
+    console.log('Exiting program.');
+    process.exit(0);
+});
 
-//Create a new database
-createDatabase('myDatabase');
+rl.on('line', (input) => {
+    handleMenuChoice(input.trim());
+});
 
-//Create a new table in the database
-createTable('myDatabase', 'myTable');
-
-//Insert records into the table
-insertRecord('myDatabase', 'testTable', 'Record 1');
-insertRecord('myDatabase', 'testTable', 'Record 2');
-insertRecord('myDatabase', 'testTable', 'Record 3');
-
-// Read all records from the table
-readRecords('myDatabase', 'myTable');
-
-// Update a record in the table
-updateRecord('myDatabase', 'myTable', 1, 'Updated Record 2');
-
-// Read all records after the update
-readRecords('myDatabase', 'myTable');
-
-// Delete a record from the table
-deleteRecord('myDatabase', 'myTable', 0);
-
-// Read all records after the deletion
-readRecords('myDatabase', 'myTable');
+displayMenu();
