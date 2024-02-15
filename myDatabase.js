@@ -1,10 +1,10 @@
 /**The requirement is to design a file system where a database
- *  is represented as a folder, a table is akin to a file in JSON 
+ * is represented as a folder, a table is akin to a file in JSON 
  * format, and records are lines within that file, also in JSON format.
- *  The system should facilitate CRUD operations, including creating,
- *  reading, updating, and deleting databases, tables, and records. 
+ * The system should facilitate CRUD operations, including creating,
+ * reading, updating, and deleting databases, tables, and records. 
  * In total, there should be 12 operations, covering the creation, reading,
- *  updating, and deletion of folders (databases), files (tables), 
+ * updating, and deletion of folders (databases), files (tables), 
  * and individual lines within files (records).
  */
 
@@ -24,8 +24,10 @@ const baseDir = '/Users/siddhiwadetiwar/Desktop/';
 //Creating interface for reading lines from the standard input (stdin) and 
 //writing to the standard output (stdout).
 const rl = readline.createInterface({
+
     //Setting the input stream to be the standard input (keyboard input).
     input: process.stdin,
+
     //Setting the input stream to be the standard output (keyboard output.)
     output: process.stdout
 });
@@ -68,6 +70,7 @@ const createFolder = () => {
             fs.mkdirSync(folderPath);
             console.log(`Folder ${folderName} created successfully.`);
         } 
+        
         else {
             
             //Displaying a message if the folder already exists.
@@ -158,7 +161,7 @@ const deleteFolder = () => {
             //Delete the folder recursively.
             fs.rmdirSync(folderPath, { recursive: true });
             console.log(`Folder ${folderName} deleted successfully.`);
-        } 
+        }  
         else {
 
             //Display an error message if the folder does not exist.
@@ -218,7 +221,7 @@ const readFile = () => {
                 const content = fs.readFileSync(filePath, 'utf8');
                 console.log(`Records in file ${fileName} in folder ${folderName}:`);
                 console.log(JSON.parse(content));
-            } 
+            }  
             else {
 
                 //Display an error message if the file does not exist.
@@ -325,13 +328,149 @@ const createRecord = () => {
                     //Write the updated content to the file.
                     fs.writeFileSync(filePath, JSON.stringify(content, null, 2));
                     console.log(`Record added to file ${fileName} in folder ${folderName}.`);
+                } else {
+                    console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+                }
+                displayMenu();
+            });
+        });
+    });
+};
+                
+//Function to read a new record in a file.
+const readRecord = () => {
+
+    //Prompt the user for the folder name, file name, and record in JSON format.
+    rl.question('Enter folder name: ', (folderName) => {
+
+        rl.question('Enter file name: ', (fileName) => {
+
+            rl.question('Enter record index: ', (recordIndex) => {
+
+                //Construct the absolute path for the specified file.
+                const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+
+                //Check if the file exists.
+                if (fs.existsSync(filePath)) {
+
+                    //Read the current content of the file and parse it as JSON.
+                    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+                    //Check if the provided record index is within the valid range for the content array.
+                    if (recordIndex >= 0 && recordIndex < content.length) {
+
+                        // If within range, log information about the record.
+                        console.log(`Record ${recordIndex} in file ${fileName} in folder ${folderName}:`);
+                        console.log(content[recordIndex]);
+
+                    }
+                    
+                    // If outside the valid range, log a message indicating that the record does not exist.
+                    else {
+
+                        console.log(`Record ${recordIndex} does not exist in file ${fileName} in folder ${folderName}.`);
+                    }
                 } 
                 else {
 
                     //Display an error message if the file does not exist.
                     console.log(`File ${fileName} does not exist in folder ${folderName}.`);
                 }
+                displayMenu();
+            });
+        });
+    });
+};
 
+//Function to read a new record in a file.
+const updateRecord = () => {
+
+    //Prompt the user for the folder name, file name, and record in JSON format.
+    rl.question('Enter folder name: ', (folderName) => {
+
+        rl.question('Enter file name: ', (fileName) => {
+
+            rl.question('Enter record index: ', (recordIndex) => {
+
+                rl.question('Enter new record (JSON format): ', (newRecord) => {
+
+                    //Construct the absolute path for the specified file.
+                    const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+
+                    //Check if the file exists.
+                    if (fs.existsSync(filePath)) {
+
+                        //Read the current content of the file and parse it as JSON.
+                        const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+                        //Check if the provided record index is within the valid range for the content array.
+                        if (recordIndex >= 0 && recordIndex < content.length) {
+
+                            //Update the content array with the parsed new record.
+                            content[recordIndex] = JSON.parse(newRecord);
+
+                            //Write the updated content array back to the file.
+                            fs.writeFileSync(filePath, JSON.stringify(content, null, 2));
+                            console.log(`Record ${recordIndex} in file ${fileName} in folder ${folderName} updated successfully.`);
+                        } 
+                        
+                        else {
+
+                            //Log a message indicating that the specified record does not exist.
+                            console.log(`Record ${recordIndex} does not exist in file ${fileName} in folder ${folderName}.`);
+                        }
+                    } else {
+
+                        //Log a message indicating that the specified file does not exist in the specified folder.
+                        console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+                    }
+                    displayMenu();
+                });
+            });
+        });
+    });
+};
+
+//Function to read a new record in a file.
+const deleteRecord = () => {
+
+    //Prompt the user for the folder name, file name, and record in JSON format.
+    rl.question('Enter folder name: ', (folderName) => {
+
+        rl.question('Enter file name: ', (fileName) => {
+
+            rl.question('Enter record index: ', (recordIndex) => {
+
+                //Construct the absolute path for the specified file.
+                const filePath = path.join(baseDir, folderName, `${fileName}.json`);
+
+                //Check if the file exists.
+                if (fs.existsSync(filePath)) {
+
+                    //Read the current content of the file and parse it as JSON.
+                    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+                    //Check if the provided record index is within the valid range for the content array.
+                    if (recordIndex >= 0 && recordIndex < content.length) {
+
+                        //Remove the record at the specified index from the content array.
+                        content.splice(recordIndex, 1);
+
+                        //Write the updated content array back to the file.
+                        fs.writeFileSync(filePath, JSON.stringify(content, null, 2));
+                        console.log(`Record ${recordIndex} in file ${fileName} in folder ${folderName} deleted successfully.`);
+                    } 
+                    else {
+
+                        //Log a message indicating that the specified record does not exist.
+                        console.log(`Record ${recordIndex} does not exist in file ${fileName} in folder ${folderName}.`);
+                    }
+                } 
+                else {
+
+                    //Log a message indicating that the specified file does not exist in the specified folder.
+                    console.log(`File ${fileName} does not exist in folder ${folderName}.`);
+                }
                 //Display the main menu.
                 displayMenu();
             });
